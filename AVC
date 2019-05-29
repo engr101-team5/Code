@@ -7,108 +7,158 @@ git push -u origin master
 
 #include <iostream>
 #include "E101.h"
+#include <math.h>
 
 using namespace std;
-
-class Robot{
+class Robot{ // declarations
 private:
-	int v_left, v_right, cam_tilt;
-	int dv;
-	double line_error;
-	int quadrant;
-	const int cam_width = 320;
-	const int cam_height = 240;
-	const int v_left_go = 52;
-	const int v_right_go = 43;
-	double kp = 0.05;
-	int line_present = 1;
+    int v_left, v_right, cam_tilt;
+    int dv;
+    double line_error;
+    long elapsed;
+    int quadrant;
+    const int cam_width = 320;
+    const int cam_height = 240;
+    const int v_left_go = 52;
+    const int v_right_go = 43;
+    const int left_motor = 1;
+    const int right_motor = 5;
+    double kp = 0.0003;
+    double kd = 0;
+    int line_present = 1;
+    
 
 public:
-	Rob(){} //default constructor
-	int lnitHardware();
-	void ReadSetMotors();
-	void SetMotors();
-	int MeasureLine();
-	int FollowLine();
-}
-/*
-int openGate(){
-		
-	int connect_to_server(char server_addr[15], int port);
-	int send_to_server(char message[24]);
-	int send_from_server(char mesage[24]);
+    Robot Rob(); // default constructor
+    int InitHardware();
+    //void ReadSetMotors();
+    void SetMotors();
+    int MeasureLine();
+    int FollowLine();
+    int measureTime();
+};
+
+int Robot::InitHardware(){
+//    int err;
+//    err = init(0);
+    init(0);
+    open_screen_stream();
+    take_picture();
+    update_screen();
+    char ip[15] = {"130.195.6.196"};
+    char msg[24] = {"Please"};
+    int connect_to_server(ip, 1024);
+    send_to_server(msg);
+    receive_from_server(msg);
+    send_to_server(msg);
+    return 0;
 }
 
+/*void Robot::ReadSetMotors(){
+}*/
 
-*/
+int Robot::measureTime(){
+	struct timespec ts_start;
+	struct timespec ts_end;
+	clock_gettime(CLOCK_MONOTONIC, &ts_start);
+	//for(int i =0;  i< 560; i++){ //code_to_time();
+		//double x = sin(i);
+	//}
+	clock_gettime(CLOCK_MONOTONIC, &ts_end);
+  
+	elapsed = (ts_end.tv_sec-ts_start.tv_sec)*1000000000 + ts_end.tv_nsec-ts_start.tv_nsec;
+	cout<<"elapsed[ns] ="<<elapsed<<endl;
+	return 0;
+}
+  
+void Robot::SetMotors(){
+    set_motors(left_motor,v_left);
+    set_motors(right_motor,v_right);
+    hardware_exchange();
+}
 
 int Robot::MeasureLine(){
-	int countr = 0; //rows
-	int countc = 0; //columns 
-	int pixel[320]; //array list 
-	int index[int i];
-	int error = 0;
-	
-	for(int i=0; i<320;i++){ //setting index with negative and positive numbers
+    take_picture();
+    update_screen();
+    int row = cam_height/2; // get middle row
+    int middleCol = cam_width/2; // get middle column which zeroes error
+    int whiteVals[cam_width]; // stores brightness values
+    int totalBlack = 0; // "black" pixel counter
+    //cout << "row: " << row << " mC: " <<  middleCol << endl;
+    line_error = 0;
+    int max = 0;
+    int min = 255;
+    int pixel[320];
+    int index[int i];
+
+for(int i=0; i<321;i++){ //setting index with negative and positive numbers
 		index[i]=i-160;
 	}
-	
-	while(countr=60 || countr=120 || countr=180){ //we will count three error and average it to find the final amount of error. Easiest way
-		countc=0;
-		for(countc=0; countc<320; countc++){ //counting through the row 
-			int red = get_pixel(countr, countc, 0);
-			int green = get_pixel(countr, countc, 1); //getting the pixel colour
-			int blue = get_pixel(countr, countc, 2);
-			
-			if((float)green<60 && (float)red<60 && (float)blue<60){ //if black set it as 1
-				pixel[countc] = 1;
-			}
-			else if((float)green>180 && (float)red>180 && (float)blue>180){ //if white set it as 0
-				pixel[countc] = 0;
-			}
-		}
-		for(int n=0; n<360; n++){//going through both arrays and comparing
-			error = error+index[n]*pixel[n];
-		}
-	}
-	error_line = error/3.0;//averaging
+
+    for (int i=0; i<cam_width; i++) {
+        int whiteVal = get_pixel(row, i, 3);
+        whiteVals[i] = whiteVal;
+        if (whiteVal > max) {
+            max = whiteVal;
+        }
+        if (whiteVal < min) {
+            min = whiteVal;
+        }
+    }
+    //cout << "max: "<<max<<" min: "<<min<<endl;
+    int threshold = (max+min)/2;
+    int isBelowThr = 0;
+    for (int i=0; i<cam_width; i++) {
+        if (whiteVals[i] <= threshold) {
+            isBelowThr = 1;
+	pixel[countc] = 1;
+            totalBlack++;
+        } else {
+            isBelowThr = 0;
+	pixel[countc] = 0;
+        }
+        //cout << isBelowThr << " " << (i-middleCol);
+        //line_error += isBelowThr * (i-middleCol);
+for(int n=0; n<360; n++){//going through both arrays and comparing
+			line_error = error+index[n]*pixel[n];
+
+    }
+    if (totalBlack > 10) {
+        line_present = 1;
+    } else {
+        line_present = 0;
+    }
+    //cout << "LE=" << line_error << " isP= " << line_present << " thr=" << threshold;
+    return 0;
 }
-	
 
 int Robot::FollowLine(){
-	MeasureLine();
-	if(line_present){
-		dv = (int)(line_error = kp);
-		//dv = 0;
-		v_left = v_left_go + dv;
-		v_right = v_right_go + dv;
-		cout<<" line_error = "<<line_error<<" dv="<<dv;
-		SetMotors();
-	}
-	else{
-		//go back
-		cout<<" Line_missing"<<endl;
-		v_left = 39;
-		v_right = 55;
-		SetMotors();
-		sleep1(100);
-	}
-	return 0;
+    MeasureLine();
+    if (line_present) {
+        dv = (int) (line_error*kp)+kd;
+        // dv = 0;
+        v_left = v_left_go + dv;
+        v_right = v_right_go+dv;
+        //cout << "Line error =" << line_error << " dv= " << dv;
+        SetMotors();
+    } else { // go back
+        cout << " Line missing " <<endl;
+        v_left = 39;
+        v_right = 55;
+        SetMotors();
+        //sleep1(100);
+    }
+    return 0;
 }
-int main(){
-	
-	Robot robot;
-	robot.lnitHardware();
-	int count = 0;
-	open_screen_stream();
-	while(count < 5000) {
-		robot.MeasureLine();
-		robot.FollowLine();
-		count++;
-	}
-	//save_picture("file1");
-	close_screen_stream();
-	stoph();
-	return 0;
+
+int main() {
+    Robot rob;
+    rob.InitHardware();
+    while (true) {
+        rob.MeasureLine();
+        rob.FollowLine();
+    }
+    return 0;
 }
+
 

@@ -133,9 +133,6 @@ int Robot::FollowLine(){
         SetMotors();
         //sleep1(100);
     }
-    
-    //if no black line
-    
     return 0;
 }
 

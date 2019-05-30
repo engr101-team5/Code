@@ -95,7 +95,7 @@ int Robot::MeasureLine(){
 			int thres = (max+min)/2;
 			if(whiteVal<thres){ //if black set it as 1
 				pixel[countc] = 1;
-				black++
+				black++;
 			}
 			else if(whiteVal>thres){ //if white set it as 0
 				pixel[countc] = 0;
@@ -141,7 +141,7 @@ int main() {
     char ip[15] = {"130.195.6.196"};
     char msg[24] = {"Please"};
     char pass[24];
-    int connect_to_server(ip, 1024);
+    connect_to_server(ip, 1024);
     send_to_server(msg);
     receive_from_server(pass);
     send_to_server(pass);
@@ -152,3 +152,4 @@ int main() {
     }
     return 0;
 }
+

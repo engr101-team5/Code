@@ -76,24 +76,26 @@ int Robot::MeasureLine(){
     	int countr = 0; //rows
 	int countc = 0; //columns 
 	int pixel[320]; //array list 
-	int index[int i];
+	int index[320];
 	int error = 0;
+	line_error=0;
 	
 	for(int i=0; i<320;i++){ //setting index with negative and positive numbers
 		index[i]=i-160;
 	}
 	
-	while(countr=60 || countr=120 || countr=180){ //we will count three error and average it to find the final amount of error. Easiest way
+	while(countr=80; countr<320; countr=countr+80){ //we will count three error and average it to find the final amount of error. Easiest way
 		countc=0;
 		for(countc=0; countc<320; countc++){ //counting through the row 
 			int red = get_pixel(countr, countc, 0);
 			int green = get_pixel(countr, countc, 1); //getting the pixel colour
 			int blue = get_pixel(countr, countc, 2);
+			int whiteVal = (((float)red+(float)green+(float)blue/3.0);
 			
-			if((float)green<60 && (float)red<60 && (float)blue<60){ //if black set it as 1
+			if(whiteVal<60){ //if black set it as 1
 				pixel[countc] = 1;
 			}
-			else if((float)green>180 && (float)red>180 && (float)blue>180){ //if white set it as 0
+			else if(whiteVal>180){ //if white set it as 0
 				pixel[countc] = 0;
 			}
 		}
@@ -102,6 +104,7 @@ int Robot::MeasureLine(){
 		}
 	}
 	error_line = error/3.0;//averaging
+	return 0;
 }
    
 
@@ -126,12 +129,10 @@ int Robot::FollowLine(){
 
 int main() {
     Robot robpt;
-    robot.InitHardware();
+    //robot.InitHardware();
     while (true) {
         robot.MeasureLine();
         robot.FollowLine();
     }
     return 0;
 }
-
-

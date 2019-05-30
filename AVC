@@ -12,13 +12,14 @@ private:
     int quadrant;
     const int cam_width = 320;
     const int cam_height = 240;
-    const int v_left_go = 52;
-    const int v_right_go = 43;
+    const int v_left_go = 53;
+    const int v_right_go = 43; //48
     const int left_motor = 1;
     const int right_motor = 5;
     double kp = 0.0003;
     double kd = 0;
-    int line_present = 1;
+    int black;
+    int line_present = 0;
     
 
 public:
@@ -38,12 +39,7 @@ int Robot::InitHardware(){
     open_screen_stream();
     take_picture();
     update_screen();
-    char ip[15] = {"130.195.6.196"};
-    char msg[24] = {"Please"};
-    int connect_to_server(ip, 1024);
-    send_to_server(msg);
-    receive_from_server(msg);
-    send_to_server(msg);
+    
     return 0;
 }
 
@@ -73,7 +69,7 @@ void Robot::SetMotors(){
 int Robot::MeasureLine(){
     take_picture();
     update_screen();
-    int countr = 0; //rows
+    int countr = 120; //rows 1, 120, 239
 	int countc = 0; //columns 
 	int pixel[320]; //array list 
 	int index[321];
@@ -82,14 +78,14 @@ int Robot::MeasureLine(){
 	int min =255;
 	line_error=0;
 	
-	for(int i=0; i<320;i++){ //setting index with negative and positive numbers
+	for(int i=0; i<=320;i++){ //setting index with negative and positive numbers
 		index[i]=i-160;
 	}
 	
-	while(countr=80; countr<320; countr=countr+80){ //we will count three error and average it to find the final amount of error. Easiest way
-		countc=0;
+	//while(countr=80; countr<320; countr=countr+80){ //we will count three error and average it to find the final amount of error. Easiest way
+		//countc=0;
 		for(countc=0; countc<320; countc++){ //counting through the row 			
-			int whiteVal = get_pixel(row, i, 3);
+			int whiteVal = (int)get_pixel(countr, countc, 3);
 			if (whiteVal > max) {
             max = whiteVal;
 			}
@@ -99,22 +95,31 @@ int Robot::MeasureLine(){
 			int thres = (max+min)/2;
 			if(whiteVal<thres){ //if black set it as 1
 				pixel[countc] = 1;
+				black++
 			}
 			else if(whiteVal>thres){ //if white set it as 0
 				pixel[countc] = 0;
 			}
 		}
-		for(int n=0; n<360; n++){//going through both arrays and comparing
+		
+		for(int n=0; n<=320; n++){//going through both arrays and comparing
 			line_error = error+index[n]*pixel[n];
 		}
-	}
+		
+		if(black<5){
+			line_present=1;
+		}
+		else{
+			line_present=0;
+		}
+	//}
 	return 0;
 }
    
 
 int Robot::FollowLine(){
     MeasureLine();
-    if (line_present) {
+    if (line_present==1) {
         dv = (int) (line_error*kp)+kd;
         // dv = 0;
         v_left = v_left_go + dv;
@@ -123,19 +128,30 @@ int Robot::FollowLine(){
         SetMotors();
     } else { // go back
         cout << " Line missing " <<endl;
-        v_left = 39;
-        v_right = 55;
+        v_left = 43;
+        v_right = 53;
         SetMotors();
         //sleep1(100);
     }
+    
+    //if no black line
+    
     return 0;
 }
 
 int main() {
-    Robot robpt;
-    //robot.InitHardware();
+    Robot robot;
+    char ip[15] = {"130.195.6.196"};
+    char msg[24] = {"Please"};
+    char pass[24];
+    int connect_to_server(ip, 1024);
+    send_to_server(msg);
+    receive_from_server(pass);
+    send_to_server(pass);
+    robot.InitHardware();
     while (true) {
         robot.MeasureLine();
         robot.FollowLine();
     }
     return 0;
+}

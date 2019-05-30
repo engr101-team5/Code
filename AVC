@@ -73,11 +73,13 @@ void Robot::SetMotors(){
 int Robot::MeasureLine(){
     take_picture();
     update_screen();
-    	int countr = 0; //rows
+    int countr = 0; //rows
 	int countc = 0; //columns 
 	int pixel[320]; //array list 
-	int index[320];
+	int index[321];
 	int error = 0;
+	int max=0;
+	int min =255;
 	line_error=0;
 	
 	for(int i=0; i<320;i++){ //setting index with negative and positive numbers
@@ -86,24 +88,26 @@ int Robot::MeasureLine(){
 	
 	while(countr=80; countr<320; countr=countr+80){ //we will count three error and average it to find the final amount of error. Easiest way
 		countc=0;
-		for(countc=0; countc<320; countc++){ //counting through the row 
-			int red = get_pixel(countr, countc, 0);
-			int green = get_pixel(countr, countc, 1); //getting the pixel colour
-			int blue = get_pixel(countr, countc, 2);
-			int whiteVal = (((float)red+(float)green+(float)blue/3.0);
-			
-			if(whiteVal<60){ //if black set it as 1
+		for(countc=0; countc<320; countc++){ //counting through the row 			
+			int whiteVal = get_pixel(row, i, 3);
+			if (whiteVal > max) {
+            max = whiteVal;
+			}
+			else if (whiteVal < min) {
+            min = whiteVal;
+			}
+			int thres = (max+min)/2;
+			if(whiteVal<thres){ //if black set it as 1
 				pixel[countc] = 1;
 			}
-			else if(whiteVal>180){ //if white set it as 0
+			else if(whiteVal>thres){ //if white set it as 0
 				pixel[countc] = 0;
 			}
 		}
 		for(int n=0; n<360; n++){//going through both arrays and comparing
-			error = error+index[n]*pixel[n];
+			line_error = error+index[n]*pixel[n];
 		}
 	}
-	error_line = error/3.0;//averaging
 	return 0;
 }
    
@@ -135,4 +139,3 @@ int main() {
         robot.FollowLine();
     }
     return 0;
-}

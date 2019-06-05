@@ -109,6 +109,8 @@ int Robot::MeasureLine(){
 			line_error = error+index[n]*pixel[n];
 		}
 		
+		line_error/=black;
+		
 		if(black>10){
 			line_present=1;
 		}
@@ -121,7 +123,6 @@ int Robot::MeasureLine(){
    
 
 int Robot::FollowLine(){
-    MeasureLine();
     if (line_present==1) {
         dv = (int) (line_error*kp)+kd;
         // dv = 0;
@@ -140,7 +141,7 @@ int Robot::FollowLine(){
         v_left = 44;
         v_right = 52;
         SetMotors();
-        sleep1(100);
+        //sleep1(100);
     }
     return 0;
 }

@@ -12,11 +12,11 @@ private:
     int quadrant;
     const int cam_width = 320;
     const int cam_height = 240;
-    const int v_left_go = 53;
-    const int v_right_go = 43; //48
-    const int left_motor = 1;
-    const int right_motor = 5;
-    double kp = 0.0003;
+    const int v_left_go = 52;
+    const int v_right_go = 44; //48
+    const int left_motor = 5;
+    const int right_motor = 1;
+    double kp = 0.05;
     double kd = 0;
     int black;
     int line_present = 0;
@@ -69,10 +69,10 @@ void Robot::SetMotors(){
 int Robot::MeasureLine(){
     take_picture();
     update_screen();
-    int countr = 120; //rows 1, 120, 239
+    int countr = 60; //rows 1, 120, 239
 	int countc = 0; //columns 
 	int pixel[320]; //array list 
-	int index[321];
+	int index[320];
 	int error = 0;
 	int max=0;
 	int min =255;
@@ -106,7 +106,7 @@ int Robot::MeasureLine(){
 			line_error = error+index[n]*pixel[n];
 		}
 		
-		if(black<5){
+		if(black>10){
 			line_present=1;
 		}
 		else{
@@ -128,10 +128,10 @@ int Robot::FollowLine(){
         SetMotors();
     } else { // go back
         cout << " Line missing " <<endl;
-        v_left = 43;
-        v_right = 53;
+        v_left = 44;
+        v_right = 52;
         SetMotors();
-        //sleep1(100);
+        sleep1(100);
     }
     return 0;
 }
@@ -142,9 +142,14 @@ int main() {
     char msg[24] = {"Please"};
     char pass[24];
     connect_to_server(ip, 1024);
+    sleep1(100);
     send_to_server(msg);
+    sleep1(100);
     receive_from_server(pass);
+    sleep1(100);
     send_to_server(pass);
+    sleep1(100);
+    
     robot.InitHardware();
     while (true) {
         robot.MeasureLine();

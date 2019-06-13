@@ -46,20 +46,6 @@ int Robot::InitHardware(){
 /*void Robot::ReadSetMotors(){
 }*/
 
-int Robot::measureTime(){
-	struct timespec ts_start;
-	struct timespec ts_end;
-	clock_gettime(CLOCK_MONOTONIC, &ts_start);
-	//for(int i =0;  i< 560; i++){ //code_to_time();
-		//double x = sin(i);
-	//}
-	clock_gettime(CLOCK_MONOTONIC, &ts_end);
-  
-	elapsed = (ts_end.tv_sec-ts_start.tv_sec)*1000000000 + ts_end.tv_nsec-ts_start.tv_nsec;
-	cout<<"elapsed[ns] ="<<elapsed<<endl;
-	return 0;
-}
-  
 void Robot::SetMotors(){
     set_motors(left_motor,v_left);
     set_motors(right_motor,v_right);
@@ -82,9 +68,6 @@ int Robot::MeasureLine(){
 	for(int i=0; i<=320;i++){ //setting index with negative and positive numbers
 		index[i]=i-160;
 	}
-	
-	//while(countr=80; countr<320; countr=countr+80){ //we will count three error and average it to find the final amount of error. Easiest way
-		//countc=0;
 		for(countc=0; countc<320; countc++){ //counting through the row 			
 			int pix = (int)get_pixel(countr, countc, 3);
 			if (pix > max) {
@@ -117,7 +100,6 @@ int Robot::MeasureLine(){
 		else{
 			line_present=0;
 		}
-	//}
 	return 0;
 }
    

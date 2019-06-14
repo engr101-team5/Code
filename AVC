@@ -135,11 +135,8 @@ int main() {
     char msg[24] = {"Please"};
     char pass[24];
     connect_to_server(ip, 1024);
-    sleep1(100);
     send_to_server(msg);
-    sleep1(100);
     receive_from_server(pass);
-    sleep1(100);
     send_to_server(pass);
     sleep1(100);
     
